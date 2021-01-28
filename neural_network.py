@@ -1,5 +1,5 @@
 import numpy as np, matplotlib.pyplot as plt
-import copy
+import copy, math
 
 
 class Point:
@@ -7,6 +7,51 @@ class Point:
         self.values = values # values for each point
         self.label = label # label that shows each point belongs to which cluster
         self.predicted_label = None # label that is predicted for test data
+
+
+# sigmoid function
+def sigmoid(x):
+    return 1 / (1 + math.exp(-x))
+
+
+# running the gradient descent algorithm
+def gradient_descent_linear(train_data, learning_rate=0.01, epoch=1000):
+    m = len(train_data)
+    x_arr = [np.append(np.array(1), point.values) for point in train_data]
+    y_arr = [np.array(point.label) for point in train_data]
+    w = np.random.normal(loc=0.0, scale=0.1, size=len(x_arr[0]))
+    for i in range(epoch):
+        derivations = np.zeros(len(w))
+        for j in range(len(x_arr)):
+            z = np.dot(x_arr[j], w)
+            term2 = (y_arr[j] - sigmoid(z)) * sigmoid(z) * (1 - sigmoid(z))
+            derivations += (-2 * x_arr[j] / m) * term2
+        w = w - learning_rate * derivations 
+    return w
+
+
+# predict the result for test data
+def predict_result_linear(test_data, w):
+    data = copy.deepcopy(test_data)
+    x_arr = [np.append(np.array(1), point.values) for point in test_data]
+    for i in range(len(x_arr)):
+        res = np.dot(x_arr[i], w)
+        if res >= 0.5:
+            data[i].predicted_label = 1
+        else:
+            data[i].predicted_label = 0
+    return data
+
+
+# calculating the accuracy of the predicted model
+def calculate_accuracy(predicted_model):
+    accuracy = max_accuracy = float(len(predicted_model))
+    for point in predicted_model:
+        if point.predicted_label != point.label:
+            accuracy -= 1
+    return accuracy / max_accuracy
+
+
 
 
 # reading the dataset from file
